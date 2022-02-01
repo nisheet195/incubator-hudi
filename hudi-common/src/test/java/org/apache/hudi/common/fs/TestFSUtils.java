@@ -22,6 +22,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hudi.common.model.HoodieLogFile;
 import org.apache.hudi.common.table.HoodieTableMetaClient;
+import org.apache.hudi.common.table.timeline.HoodieActiveTimeline;
 import org.apache.hudi.common.testutils.HoodieCommonTestHarness;
 import org.apache.hudi.common.testutils.HoodieTestUtils;
 import org.apache.hudi.exception.HoodieException;
@@ -41,7 +42,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.apache.hudi.common.table.timeline.HoodieActiveTimeline.COMMIT_FORMATTER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -67,14 +67,14 @@ public class TestFSUtils extends HoodieCommonTestHarness {
 
   @Test
   public void testMakeDataFileName() {
-    String instantTime = COMMIT_FORMATTER.format(new Date());
+    String instantTime = HoodieActiveTimeline.formatInstantTime(new Date());
     String fileName = UUID.randomUUID().toString();
     assertEquals(FSUtils.makeDataFileName(instantTime, TEST_WRITE_TOKEN, fileName), fileName + "_" + TEST_WRITE_TOKEN + "_" + instantTime + ".parquet");
   }
 
   @Test
   public void testMaskFileName() {
-    String instantTime = COMMIT_FORMATTER.format(new Date());
+    String instantTime = HoodieActiveTimeline.formatInstantTime(new Date());
     int taskPartitionId = 2;
     assertEquals(FSUtils.maskWithoutFileId(instantTime, taskPartitionId), "*_" + taskPartitionId + "_" + instantTime + ".parquet");
   }
@@ -139,7 +139,7 @@ public class TestFSUtils extends HoodieCommonTestHarness {
 
   @Test
   public void testGetCommitTime() {
-    String instantTime = COMMIT_FORMATTER.format(new Date());
+    String instantTime = HoodieActiveTimeline.formatInstantTime(new Date());
     String fileName = UUID.randomUUID().toString();
     String fullFileName = FSUtils.makeDataFileName(instantTime, TEST_WRITE_TOKEN, fileName);
     assertEquals(instantTime, FSUtils.getCommitTime(fullFileName));
@@ -147,7 +147,7 @@ public class TestFSUtils extends HoodieCommonTestHarness {
 
   @Test
   public void testGetFileNameWithoutMeta() {
-    String instantTime = COMMIT_FORMATTER.format(new Date());
+    String instantTime = HoodieActiveTimeline.formatInstantTime(new Date());
     String fileName = UUID.randomUUID().toString();
     String fullFileName = FSUtils.makeDataFileName(instantTime, TEST_WRITE_TOKEN, fileName);
     assertEquals(fileName, FSUtils.getFileId(fullFileName));
