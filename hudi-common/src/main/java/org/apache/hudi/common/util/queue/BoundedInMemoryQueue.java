@@ -180,6 +180,7 @@ public class BoundedInMemoryQueue<I, O> implements Iterable<O> {
       throw new IllegalStateException("Queue closed for enqueueing new entries");
     }
 
+    checkIfInterrupted();
     // We need to stop queueing if queue-reader has failed and exited.
     throwExceptionIfFailed();
 
@@ -204,6 +205,7 @@ public class BoundedInMemoryQueue<I, O> implements Iterable<O> {
    * singleton iterator for this queue.
    */
   private Option<O> readNextRecord() {
+    checkIfInterrupted();
     if (this.isReadDone.get()) {
       return Option.empty();
     }
@@ -245,6 +247,13 @@ public class BoundedInMemoryQueue<I, O> implements Iterable<O> {
   private void throwExceptionIfFailed() {
     if (this.hasFailed.get() != null) {
       throw new HoodieException("operation has failed", this.hasFailed.get());
+    }
+  }
+
+  private void checkIfInterrupted() {
+    if (Thread.currentThread().isInterrupted()) {
+      this.hasFailed.set(new InterruptedException());
+      Thread.currentThread().interrupt();
     }
   }
 

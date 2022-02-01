@@ -74,7 +74,7 @@ public class HoodieParquetWriter<T extends HoodieRecordPayload, R extends Indexe
   }
 
   @Override
-  public void writeAvroWithMetadata(R avroRecord, HoodieRecord record) throws IOException {
+  public synchronized void writeAvroWithMetadata(R avroRecord, HoodieRecord record) throws IOException {
     String seqId =
         HoodieRecord.generateSequenceId(instantTime, taskContextSupplier.getPartitionIdSupplier().get(), recordIndex.getAndIncrement());
     HoodieAvroUtils.addHoodieKeyToRecord((GenericRecord) avroRecord, record.getRecordKey(), record.getPartitionPath(),
@@ -90,7 +90,7 @@ public class HoodieParquetWriter<T extends HoodieRecordPayload, R extends Indexe
   }
 
   @Override
-  public void writeAvro(String key, IndexedRecord object) throws IOException {
+  public synchronized void writeAvro(String key, IndexedRecord object) throws IOException {
     super.write(object);
     writeSupport.add(key);
   }
@@ -98,5 +98,10 @@ public class HoodieParquetWriter<T extends HoodieRecordPayload, R extends Indexe
   @Override
   public long getBytesWritten() {
     return fs.getBytesWritten(file);
+  }
+
+  @Override
+  public synchronized void close() throws IOException {
+    super.close();
   }
 }

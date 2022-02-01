@@ -101,13 +101,13 @@ public class SparkMergeHelper<T extends HoodieRecordPayload> extends AbstractMer
     } catch (Exception e) {
       throw new HoodieException(e);
     } finally {
+      if (null != wrapper) {
+        wrapper.shutdownNow();
+      }
       if (reader != null) {
         reader.close();
       }
       mergeHandle.close();
-      if (null != wrapper) {
-        wrapper.shutdownNow();
-      }
     }
   }
 }

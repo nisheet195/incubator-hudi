@@ -34,6 +34,7 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -48,6 +49,7 @@ public class BoundedInMemoryExecutor<I, O, E> {
 
   // Executor service used for launching writer thread.
   private final ExecutorService executorService;
+  public static final int TERMINATE_WAIT_TIME = 60;
   // Used for buffering records which is controlled by HoodieWriteConfig#WRITE_BUFFER_LIMIT_BYTES.
   private final BoundedInMemoryQueue<I, O> queue;
   // Producers
@@ -150,6 +152,11 @@ public class BoundedInMemoryExecutor<I, O, E> {
 
   public void shutdownNow() {
     executorService.shutdownNow();
+    try {
+      executorService.awaitTermination(TERMINATE_WAIT_TIME, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      LOG.error(String.format("executor didn't terminate within %d seconds", TERMINATE_WAIT_TIME), e);
+    }
   }
 
   public BoundedInMemoryQueue<I, O> getQueue() {
